@@ -626,6 +626,70 @@
       transition: transform 0.3s;
     }
     .music-toggle:hover { transform: scale(1.1); }
+
+    /* ========== RESPONSIVIDADE MOBILE (iPhone 11 e similares) ========== */
+    @media (max-width: 768px) {
+      /* Ajustes Gerais */
+      section { padding: 4rem 1.2rem; }
+      .section-title { margin-bottom: 2rem; font-size: clamp(1.6rem, 7vw, 2.2rem); }
+      
+      /* Hero */
+      #hero { padding: 1.5rem; }
+      #hero h1 { font-size: clamp(2rem, 8vw, 2.5rem); }
+      .btn-primary { padding: 1.2rem 2.5rem; width: 100%; max-width: 320px; font-size: 1.15rem; }
+
+      /* Contador */
+      .counter-grid { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+      .counter-item { padding: 1.2rem 0.5rem; }
+      .counter-num { font-size: clamp(1.6rem, 7vw, 2.2rem); }
+      
+      /* Galeria Swipe Horizontal */
+      .gallery {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 1.5rem;
+        -webkit-overflow-scrolling: touch;
+        gap: 1.5rem;
+        justify-content: flex-start;
+      }
+      .gallery::-webkit-scrollbar { height: 6px; }
+      .gallery::-webkit-scrollbar-thumb { background: rgba(255, 107, 157, 0.5); border-radius: 4px; }
+      .polaroid {
+        flex: 0 0 80%;
+        max-width: 300px;
+        scroll-snap-align: center;
+        margin: 0;
+      }
+      
+      /* Timeline */
+      .timeline { padding-left: 1.5rem; }
+      .timeline-item { padding-left: 1.5rem; margin-bottom: 2rem; }
+      .timeline-item::before { left: -2.1rem; width: 24px; height: 24px; font-size: 0.85rem; }
+      .timeline-item h3 { font-size: 1.2rem; }
+      
+      /* Cartinhas */
+      .envelopes { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+      .envelope { transform: scale(1.05); margin: 0.5rem auto; }
+      
+      /* Modal */
+      .modal { max-width: 90%; max-height: 85vh; border-radius: 16px; }
+      .modal-header { padding: 1.2rem; }
+      .modal-close { padding: 0.5rem; font-size: 2rem; display: flex; align-items: center; justify-content: center; } 
+      .modal-list { padding: 1rem 1.2rem; -webkit-overflow-scrolling: touch; }
+      .modal-list li { padding: 0.8rem 0; font-size: 1rem; }
+      
+      /* Final Card e Botões */
+      .final-card { padding: 2rem 1.5rem; }
+      .btn-sim { width: 100%; padding: 1.2rem; font-size: 1.1rem; }
+
+      /* Efeitos Mágicos Mobile (Micro-interações) */
+      .btn-primary:active, .btn-secondary:active, .btn-sim:active, .polaroid:active, .envelope:active {
+        transform: scale(0.96) !important;
+        box-shadow: 0 0 25px rgba(255, 107, 157, 0.6) !important;
+        transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -721,7 +785,7 @@
       <h2>Gostaria de continuar escrevendo essa história comigo para sempre?</h2>
       <div class="final-buttons" id="final-buttons">
         <button class="btn-sim" data-sim>ÓBVIO QUE SIM ❤️</button>
-        <button class="btn-sim" data-sim>CLARO QUE SIM ❤️</button>
+        <button class="btn-sim" data-sim>CLARINHO QUE SIM ❤️</button>
       </div>
     </div>
   </section>
@@ -730,6 +794,7 @@
   <div id="love-explosion">
     <h2>Eu te amo infinitamente ❤️</h2>
     <p class="infinite-counter" id="infinite-love">0</p>
+    <button class="btn-primary" id="btn-close-final" style="margin-top: 2.5rem; font-size: 1rem; box-shadow: none; position: relative; z-index: 8001;">Voltar para nossa história ❤️</button>
   </div>
 
   <!-- 10. RODAPÉ -->
@@ -1055,20 +1120,30 @@
       constructor(type) {
         this.type = type;
         this.x = Math.random() * canvas.width;
-        this.y = type === "firework" ? canvas.height : -20;
-        this.vx = (Math.random() - 0.5) * (type === "heart" ? 4 : 8);
-        this.vy = type === "heart" ? 2 + Math.random() * 4 : -(4 + Math.random() * 6);
-        this.size = 4 + Math.random() * 8;
+        this.y = type === "firework" ? canvas.height : (Math.random() * -100 - 20);
+        
+        const isEmoji = (type === "heart" || type === "flower");
+        if (type === "flower") {
+          const flowers = ["🌸", "🌺", "🌷", "🌹", "🌻", "🌼"];
+          this.char = flowers[Math.floor(Math.random() * flowers.length)];
+        } else if (type === "heart") {
+          const hearts = ["❤️", "💖", "💕", "💗", "💘", "💓"];
+          this.char = hearts[Math.floor(Math.random() * hearts.length)];
+        }
+
+        this.vx = (Math.random() - 0.5) * (isEmoji ? 6 : 10);
+        this.vy = isEmoji ? (3 + Math.random() * 5) : -(6 + Math.random() * 8);
+        this.size = isEmoji ? (12 + Math.random() * 18) : (6 + Math.random() * 10);
         this.color = ["#ff6b9d", "#ffd166", "#c9184a", "#ffb3c9", "#fff"][Math.floor(Math.random() * 5)];
         this.life = 1;
-        this.decay = 0.005 + Math.random() * 0.01;
+        this.decay = 0.003 + Math.random() * 0.005; // Fade mais lento
         this.rotation = Math.random() * Math.PI * 2;
-        this.rotSpeed = (Math.random() - 0.5) * 0.2;
+        this.rotSpeed = (Math.random() - 0.5) * 0.1;
       }
       update() {
         this.x += this.vx;
         this.y += this.vy;
-        this.vy += this.type === "firework" ? 0.15 : 0.05;
+        this.vy += this.type === "firework" ? 0.2 : 0;
         this.rotation += this.rotSpeed;
         this.life -= this.decay;
       }
@@ -1077,9 +1152,9 @@
         ctx.globalAlpha = this.life;
         ctx.translate(this.x, this.y);
         ctx.rotate(this.rotation);
-        if (this.type === "heart") {
-          ctx.font = `${this.size * 3}px serif`;
-          ctx.fillText("❤", 0, 0);
+        if (this.type === "heart" || this.type === "flower") {
+          ctx.font = `${this.size * 3}px sans-serif`;
+          ctx.fillText(this.char, 0, 0);
         } else {
           ctx.fillStyle = this.color;
           ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
@@ -1111,17 +1186,20 @@
         animating = true;
         document.getElementById("love-explosion").classList.add("active");
 
-        // Chuva de corações
-        for (let i = 0; i < 5; i++) {
-          setTimeout(() => spawnBurst(30, "heart"), i * 300);
+        // Chuva OTIMIZADA de corações e flores
+        for (let i = 0; i < 8; i++) {
+          setTimeout(() => {
+            spawnBurst(15, "heart");
+            spawnBurst(15, "flower");
+          }, i * 400);
         }
         // Confetes
-        for (let i = 0; i < 8; i++) {
-          setTimeout(() => spawnBurst(40, "confetti"), i * 200);
+        for (let i = 0; i < 5; i++) {
+          setTimeout(() => spawnBurst(20, "confetti"), i * 500);
         }
         // Fogos
-        for (let i = 0; i < 6; i++) {
-          setTimeout(() => spawnBurst(25, "firework"), i * 500);
+        for (let i = 0; i < 4; i++) {
+          setTimeout(() => spawnBurst(15, "firework"), i * 800);
         }
         animateFX();
 
@@ -1153,6 +1231,34 @@
         bgMusic.pause();
         musicBtn.textContent = "🎵";
       }
+    });
+
+    /* ============================================================
+       FECHAR MENSAGEM FINAL
+       ============================================================ */
+    const loveExplosion = document.getElementById("love-explosion");
+    const btnCloseFinal = document.getElementById("btn-close-final");
+
+    function closeLoveExplosion() {
+      if (!loveExplosion.classList.contains("active")) return;
+      loveExplosion.classList.remove("active");
+      clearInterval(infiniteInterval);
+      animating = false;
+      particles = [];
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    if (btnCloseFinal) {
+      btnCloseFinal.addEventListener("click", closeLoveExplosion);
+    }
+    
+    loveExplosion.addEventListener("click", (e) => {
+      // Fecha se clicar fora do texto/botão principal
+      if (e.target === loveExplosion) closeLoveExplosion();
+    });
+    
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeLoveExplosion();
     });
   </script>
 </body>
